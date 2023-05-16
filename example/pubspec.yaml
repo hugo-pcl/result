@@ -1,0 +1,19 @@
+name: result_example
+description: A new Flutter project.
+version: 1.0.0
+
+publish_to: "none"
+
+environment:
+  sdk: ">=3.0.0 <4.0.0"
+
+dependencies:
+  result:
+    path: "../"
+
+dev_dependencies:
+  test: ^1.24.2
+
+  wyatt_analysis:
+    hosted: https://git.wyatt-studio.fr/api/packages/Wyatt-FOSS/pub
+    version: ^2.5.0
