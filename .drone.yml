@@ -1,0 +1,16 @@
+kind: pipeline
+type: docker
+name: default
+
+steps:
+  - name: test
+    image: dart:3.0.0
+    commands:
+      - dart pub get
+      - dart test
+
+trigger:
+  branch:
+    - main
+  event:
+    - push
