@@ -8,10 +8,9 @@ environment:
 
 dependencies:
   meta: ^1.9.1
-  stack_trace: ^1.11.0
 
 dev_dependencies:
-  dart_code_metrics: ^5.7.3
+  melos: ^3.0.1
   test: ^1.24.2
   wyatt_analysis:
     hosted: https://git.wyatt-studio.fr/api/packages/Wyatt-FOSS/pub

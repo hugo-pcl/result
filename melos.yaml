@@ -1,0 +1,109 @@
+name: result
+
+packages:
+  - "."
+
+ignore:
+  - "./**/example"
+  - ".dart_tool/**"
+
+sdkPath: auto
+
+ide:
+  intellij:
+    enabled: false
+
+command:
+  version:
+    updateGitTagRefs: true
+    linkToCommits: false # Gitea not yet supported
+    workspaceChangelog: true
+    includeCommitId: false # Generate error in Melos 3...
+    branch: main
+    message: |
+      chore(release): publish packages
+
+      {new_package_versions}      
+
+  clean:
+    hooks:
+      post: melos exec --flutter --concurrency=3 -- "flutter clean"
+
+scripts:
+  analyze:
+    run: |
+            melos exec --flutter --concurrency=1 -- flutter analyze --fatal-infos
+    description: Run `flutter analyze` for all flutter packages.
+
+  fix:apply:
+    run: melos exec --concurrency=1 -- dart fix . --apply
+    description: Run and apply `dart fix` for all packages.
+
+  fix:check:
+    run: melos exec --concurrency=1 -- dart fix . --set-exit-if-changed
+    description: Run `dart fix` checks for all packages.
+
+  format:
+    run: melos exec --concurrency=1 -- dart format .
+    description: Run `dart format` for all packages.
+
+  lint:all:
+    run: melos run analyze && melos run format
+    description: Run all static analysis checks.
+
+  clean:deep:
+    run: git clean -x -d -f -q
+    description: Clean things very deeply with `git clean`.
+
+  test:selective_unit_test:
+    run: melos exec --concurrency=1 -- flutter test --no-pub --coverage
+    description: Run Flutter tests for a specific package in this project.
+    packageFilters:
+      dirExists:
+        - test
+      ignore:
+        - "*example*"
+
+  test:all:
+    run: melos run test:selective_unit_test --no-select
+    description: Run all Flutter tests in this project.
+
+  gen:coverage:
+    run: |
+      melos exec --concurrency=1 -- sh "\$MELOS_ROOT_PATH/combine_coverage.sh" && \
+      genhtml coverage/lcov.info -o coverage/html      
+    description: |
+      Generate coverage report for all packages.
+      Requires `lcov` and `genhtml`.      
+
+  gen:class_models:
+    run: melos exec --concurrency=1 -- dart pub global run dcdg -o models/class-models.puml
+    description: |
+      Generate class models for all packages.
+      Requires `dcdg`. (https://pub.dev/packages/dcdg)      
+    packageFilters:
+      ignore:
+        - "*example*"
+
+  quality-check:
+    run: |
+      melos clean && \
+      melos bootstrap && \
+      melos run test:all      
+    description: Run all targets generally expected in CI for a full local quality check.
+
+  publish:validate:
+    run: melos publish --diff="origin/$DRONE_COMMIT_BRANCH...HEAD" --yes
+    description: |
+      Validate that all packages are ready to be published.
+      Requires DRONE_COMMIT_BRANCH to be set.
+      Note: This will not actually publish anything.      
+
+  publish:validate-local:
+    run: melos publish --yes
+    description: |
+      Validate that all packages are ready to be published.
+      Note: This will not actually publish anything.      
+
+  # publish:
+  #   run: melos publish --diff="origin/$DRONE_COMMIT_BRANCH...HEAD" --no-dry-run --yes
