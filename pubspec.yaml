@@ -1,7 +1,9 @@
 name: result
-description: A std::result like object to handle error.
+description: Result Monad to handle errors in Dart.
 repository: https://github.com/hugo-pcl/result
 version: 2.0.0
+
+publish_to: https://git.wyatt-studio.fr/api/packages/hugo/pub
 
 environment:
   sdk: ">=3.0.0 <4.0.0"

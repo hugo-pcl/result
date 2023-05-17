@@ -4,7 +4,7 @@
 // license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
-/// A std::result like object to handle error
+/// Result Monad to handle errors in Dart
 library result;
 
 export 'src/result.dart';
