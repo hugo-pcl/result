@@ -63,7 +63,7 @@ class ResultExample {
   /// let bad_result: Result<i32, i32> = bad_result.map(|i| i - 1);
   ///
   /// // Use `and_then` to continue the computation.
-  /// let good_result: Result<bool, i32> = good_result.and_then(|i| Ok(i == 11));
+  /// let good_result: Result<bool, i32> = good_result.and_then(|i| Ok(i==11));
   ///
   /// // Use `or_else` to handle the error.
   /// let bad_result: Result<i32, i32> = bad_result.or_else(|i| Ok(i + 20));
@@ -72,8 +72,8 @@ class ResultExample {
   /// let final_awesome_result = good_result.unwrap();
   /// ```
   static Future<void> example2(List<String> args) async {
-    const goodResult = Result.ok(10);
-    const badResult = Result<int, Exception>.err(ResultException('Error'));
+    const goodResult = Result<int, int>.ok(10);
+    const badResult = Result<int, int>.err(10);
 
     // The `is_ok` and `is_err` methods do what they say.
     assert(goodResult.isOk && !goodResult.isErr, 'goodResult is not ok');
@@ -87,12 +87,13 @@ class ResultExample {
     final goodResult3 = goodResult2.andThen((i) => Result.ok(i == 11));
 
     // Use `or_else` to handle the error.
-    final badResult3 = badResult2.orElse((i) => const Result.ok(20));
+    final badResult3 =
+        badResult2.orElse((i) => Result<int, int>.ok(i + 20));
 
     print(badResult3);
 
     // Consume the result and return the contents with `unwrap`.
-    final finalAwesomeResult = goodResult3.unwrap<bool>();
+    final finalAwesomeResult = goodResult3.unwrap();
 
     print(finalAwesomeResult);
   }

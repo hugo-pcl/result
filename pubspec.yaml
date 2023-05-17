@@ -8,6 +8,7 @@ environment:
 
 dependencies:
   meta: ^1.9.1
+  stack_trace: ^1.11.0
 
 dev_dependencies:
   melos: ^3.0.1

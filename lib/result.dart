@@ -8,3 +8,5 @@
 library result;
 
 export 'src/result.dart';
+export 'src/result_exception.dart';
+export 'src/result_extension.dart';
