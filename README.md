@@ -1,6 +1,6 @@
 <p align="center">
 <img width="700px" src="resources/result_lib.png" style="background-color: rgb(255, 255, 255)">
-<h5 align="center">Result Monad to handle errors in pure Dart.</h5>
+<h5 align="center">Result Monad to handle errors in Dart.</h5>
 </p>
 
 <p align="center">
@@ -30,6 +30,8 @@
 
 It's while exploring the new features of Dart 3 and its sealed classes that I felt like packaging this little piece of code to exploit the power of pattern matching.
 
+Because no matter what people say, functional programming can be really cool and powerful 😏
+
 This package is a simple implementation of the Result Monad, which is a way to handle errors in a functional way. It's a simple wrapper around a value that can be either a success or a failure. It's a way to avoid throwing exceptions and to handle errors in a more explicit way.
 
 The used naming convention is inspired by the [Rust Result](https://doc.rust-lang.org/std/result/enum.Result.html) enum. (So you will find `Ok` and `Err` ).
@@ -41,10 +43,10 @@ The used naming convention is inspired by the [Rust Result](https://doc.rust-lan
 Different ways to create a Result:
 * `Result.ok(value)` to create a successful result
 * `Result.err(error, [stackTrace])` to create a failed result
-* `Result.of(() => value)` to create a result from a function that can throw
-* `Result.fromFuture(() => future)` to create a result from a future that can fail
-* `Result.fromCondition(condition: bool, value: T, error: E)` to create a result from a condition
-* `Result.fromConditionLazy(condition: () => bool, value: () => T, error: () => E)` to create a result from a condition with lazy evaluation
+* `Result.from(() => value)` to create a result from a function that can throw
+* `Result.fromAsync(() => future)` to create a result from a future that can fail
+* `Result.fromCondition({condition, value, error})` to create a result from a condition
+* `Result.fromConditionLazy({condition: () => condition, value: () => value, error: () => error})` to create a result from a condition with lazy evaluation
 
 Different ways to extract the value from a Result:
 * `result.ok` to get the value if the result is successful and discard the error if it's a failure
@@ -52,37 +54,41 @@ Different ways to extract the value from a Result:
 * `result.stackTrace` to get the stack trace if the result is a failure
 * `result.expect()` to get the value if the result is successful or throw an exception if it's a failure
 * `result.expectErr()` to get the error if the result is a failure or throw an exception if it's a success
-* `result.unwrap<U>()` to get the value of type `U` contained in the result
-* `result.unwrapOr<U>(defaultValue: U)` to get the value of type `U` contained in the result or a default value if it's a failure
-* `result.unwrapOrElse<U>(defaultValue: () => U)` to get the value of type `U` contained in the result or a default value if it's a failure with lazy evaluation
+* `result.unwrap()` same as `result.expect()`
+* `result.unwrapErr()` same as `result.expectErr()`
+* `result.unwrapOr(defaultValue)` to get the value contained in the result or a default value if it's a failure
+* `result.unwrapOrElse((error) => defaultValue)` to get the value contained in the result or a default value if it's a failure with lazy evaluation
 
-Different ways to check the value of a Result:
+Different ways to inspect the value of a Result:
 * `result.isOk` to check if the result is successful
 * `result.isErr` to check if the result is a failure
-* `result.contains<U>(value: U)` to check if the result contains a specific value
-* `result.containsErr<E>(error: E)` to check if the result contains a specific error
-* `result.containsLazy<U>(value: () => U)` to check if the result contains a specific value with lazy evaluation
-* `result.containsErrLazy<E>(error: () => E)` to check if the result contains a specific error with lazy evaluation
+* `result.contains(value)` to check if the result contains a specific value
+* `result.containsErr(error)` to check if the result contains a specific error
+* `result.containsLazy(() => value)` to check if the result contains a specific value with lazy evaluation
+* `result.containsErrLazy(() => error)` to check if the result contains a specific error with lazy evaluation
+* `result.inspect((value) => void)` to inspect the value of the result
+* `result.inspectErr((error) => void)` to inspect the error of the result
 * `result1 == result2` to check if two results are equal
 * `result1 != result2` to check if two results are not equal
 
 Different ways to transform a Result:
-* `result.map<U>(U Function(T value) transform)` to transform the value of the result
-* `result.mapAsync<U>(FutureOr<U> Function(T value) transform)` to transform the value of the result asynchronously
-* `result.mapErr<E>(E Function(E error) transform)` to transform the error of the result
-* `result.mapErrAsync<E>(FutureOr<E> Function(E error) transform)` to transform the error of the result asynchronously
-* `result.mapOrElse<U,F>(U Function(T value) transform, F Function(E error) transformErr)` to transform the value and the error of the result
-* `result.mapOrElseAsync<U,F>(FutureOr<U> Function(T value) transform, FutureOr<F> Function(E error) transformErr)` to transform the value and the error of the result asynchronously
+* `result.map<U>(U Function(value) transform)` to transform the value of the result
+* `result.mapAsync<U>(FutureOr<U> Function(value) transform)` to transform the value of the result asynchronously
+* `result.mapErr<U>(U Function(error) transform)` to transform the error of the result
+* `result.mapErrAsync<U>(FutureOr<U> Function(error) transform)` to transform the error of the result asynchronously
+* `result.mapOr<U>(U defaultValue, U Function(value) transform)` to transform the value of the result or return a default value if it's a failure
+* `result.mapOrAsync<U>(FutureOr<U> defaultValue, FutureOr<U> Function(value) transform)` to transform the value of the result or return a default value if it's a failure asynchronously
+* `result.mapOrElse<U>(U Function(value) defaultFn, U Function(error) transform)` to transform the value and the error of the result
+* `result.mapOrElseAsync<U>(FutureOr<U> Function(value) defaultFn, FutureOr<U> Function(error) transform)` to transform the value and the error of the result asynchronously
+* `result.fold<U>(U Function(value) okFn, U Function(error) errFn)` same as `mapOrElse` with a different syntax
+* `result.foldAsync<U>(FutureOr<U> Function(value) okFn, FutureOr<U> Function(error) errFn)` same as `mapOrElseAsync` with a different syntax
+* `result.flatten()` to flatten a result of type `Result<Result<T,E>,E>` into a result of type `Result<T,E>`
 * `result.and<U>(Result<U,E> other)` to combine two results
-* `result.andThen<U>(Result<U,E> Function(T value) transform)` to combine two results with a function
+* `result.andThen<U>(Result<U,E> Function(value) transform)` to combine two results with a function
 * `result.or<F>(Result<T,F> other)` to combine two results
-* `result.orElse<F>(Result<T,F> Function(E error) transform)` to combine two results with a function
+* `result.orElse<F>(Result<T,F> Function(error) transform)` to combine two results with a function
 * `result1 & result2` to combine two results with the `and` operator
 * `result1 | result2` to combine two results with the `or` operator
-* `result.flatten()` to flatten a result of type `Result<Result<T,E>,E>` into a result of type `Result<T,E>`
-* `result.flattenAsync()` to flatten a result of type `Result<FutureOr<Result<T,E>>,E>` into a result of type `Result<T,E>`
-* `result.fold<U>(U Function(T value) transform, U Function(E error) transformErr)` to transform the value and the error of the result
-* `result.foldAsync<U>(FutureOr<U> Function(T value) transform, FutureOr<U> Function(E error) transformErr)` to transform the value and the error of the result asynchronously
 
 ## Usage
 
