@@ -7,7 +7,7 @@
 import 'dart:async';
 
 import 'package:meta/meta.dart';
-import 'package:result/src/result_exception.dart';
+import 'package:sealed_result/src/result_exception.dart';
 
 typedef ResultCallback<T> = T Function();
 typedef ResultCallbackArg<T, Arg> = T Function(Arg arg);

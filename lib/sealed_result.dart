@@ -4,8 +4,8 @@
 // license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
-/// Result Monad to handle errors in Dart
-library result;
+/// Result to handle errors in Dart
+library sealed_result;
 
 export 'src/result.dart';
 export 'src/result_exception.dart';

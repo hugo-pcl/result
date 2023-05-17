@@ -1,4 +1,4 @@
-name: result
+name: sealed_result
 
 packages:
   - "."

@@ -1,6 +1,6 @@
 <p align="center">
 <img width="700px" src="resources/result_lib.png" style="background-color: rgb(255, 255, 255)">
-<h5 align="center">Result Monad to handle errors in Dart.</h5>
+<h5 align="center">Result to handle errors in Dart.</h5>
 </p>
 
 <p align="center">

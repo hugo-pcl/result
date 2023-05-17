@@ -4,7 +4,7 @@
 // license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
-import 'package:result/src/result.dart';
+import 'package:sealed_result/src/result.dart';
 
 /// Extension on [Result] to provide some useful methods.
 ///

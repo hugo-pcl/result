@@ -4,7 +4,7 @@
 // license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
-import 'package:result/result.dart';
+import 'package:sealed_result/sealed_result.dart';
 
 enum Version { version1, version2 }
 
@@ -87,8 +87,7 @@ class ResultExample {
     final goodResult3 = goodResult2.andThen((i) => Result.ok(i == 11));
 
     // Use `or_else` to handle the error.
-    final badResult3 =
-        badResult2.orElse((i) => Result<int, int>.ok(i + 20));
+    final badResult3 = badResult2.orElse((i) => Result<int, int>.ok(i + 20));
 
     print(badResult3);
 

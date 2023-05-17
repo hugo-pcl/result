@@ -8,7 +8,7 @@ environment:
   sdk: ">=3.0.0 <4.0.0"
 
 dependencies:
-  result:
+  sealed_result:
     path: "../"
 
 dev_dependencies:

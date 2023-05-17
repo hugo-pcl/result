@@ -4,7 +4,7 @@
 // license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
-import 'package:result/result.dart';
+import 'package:sealed_result/sealed_result.dart';
 import 'package:stack_trace/stack_trace.dart';
 import 'package:test/test.dart';
 
