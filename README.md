@@ -4,14 +4,14 @@
 </p>
 
 <p align="center">
-<a href="https://git.wyatt-studio.fr/Wyatt-FOSS/wyatt-packages/src/branch/master/packages/wyatt_analysis">
-<img src="https://img.shields.io/badge/Style-Wyatt%20Analysis-blue.svg?style=flat-square" alt="Style: Wyatt Analysis" />
-</a>
-
-<img src="https://img.shields.io/badge/SDK-Dart%20%7C%20Flutter-blue?style=flat-square" alt="SDK: Dart & Flutter" />
+<img src="https://img.shields.io/badge/SDK-Dart%20%7C%20Flutter-blue" alt="SDK: Dart & Flutter" />
 
 <a href="https://github.com/invertase/melos">
-<img src="https://img.shields.io/badge/Maintained%20with-melos-f700ff.svg?style=flat-square" alt="Maintained with Melos" />
+<img src="https://img.shields.io/badge/Maintained%20with-melos-f700ff.svg" alt="Maintained with Melos" />
+</a>
+
+<a href="https://github.com/invertase/melos">
+<img src="https://img.shields.io/pub/v/sealed_result" alt="Maintained with Melos" />
 </a>
 
 <a href="https://drone.wyatt-studio.fr/hugo/result">
