@@ -10,7 +10,7 @@
 <img src="https://img.shields.io/badge/Maintained%20with-melos-f700ff.svg" alt="Maintained with Melos" />
 </a>
 
-<a href="https://github.com/invertase/melos">
+<a href="https://pub.dev/packages/sealed_result">
 <img src="https://img.shields.io/pub/v/sealed_result" alt="Maintained with Melos" />
 </a>
 
