@@ -1,5 +1,5 @@
 <p align="center">
-<img width="700px" src="resources/result_lib.png" style="background-color: rgb(255, 255, 255)">
+<img width="700px" src="https://raw.githubusercontent.com/hugo-pcl/result/main/resources/result_lib.png" style="background-color: rgb(255, 255, 255)">
 <h5 align="center">Result to handle errors in Dart.</h5>
 </p>
 
@@ -42,7 +42,12 @@ The used naming convention is inspired by the [Rust Result](https://doc.rust-lan
 
 Different ways to create a Result:
 * `Result.ok(value)` to create a successful result
+* `Ok(value)` same as `Result.ok(value)`
+* `Result.success(value)` same as `Result.ok(value)`
 * `Result.err(error, [stackTrace])` to create a failed result
+* `Err(error, [stackTrace])` same as `Result.err(error, [stackTrace])`
+* `Result.error(error, [stackTrace])` same as `Result.err(error, [stackTrace])`
+* `Result.failure(error, [stackTrace])` same as `Result.err(error, [stackTrace])`
 * `Result.from(() => value)` to create a result from a function that can throw
 * `Result.fromAsync(() => future)` to create a result from a future that can fail
 * `Result.fromCondition({condition, value, error})` to create a result from a condition
@@ -95,7 +100,7 @@ Different ways to transform a Result:
 Import the package:
 
 ```dart
-import 'package:result/result.dart';
+import 'package:sealed_result/sealed_result.dart';
 ```
 
 Create a function that can fail:
@@ -144,3 +149,52 @@ error parsing header: ResultException: invalid header length
 ```
 
 See more examples in [example](./example/lib/main.dart) and [test](./test/result_test.dart) folders.
+
+## Notes
+
+`Result` is a sealed class, so you can exhaustively match it with `switch` . So if you just want to get the value of the result, prefer using Dart 3 pattern matching instead of the `fold` method:
+
+```dart
+final result = Result.ok(42);
+final value = switch (result) {
+  Ok(ok: final value) => value,
+  Err(err: final error) => 0,
+};
+```
+
+---
+
+Multiple factory constructors are available to create a `Result` :
+
+```dart
+Result.ok(42);
+Ok(42);
+Result.success(42);
+```
+
+are equivalent, and
+
+```dart
+Result.err('error');
+Err('error');
+Result.error('error');
+Result.failure('error');
+```
+
+are equivalent too.
+
+---
+
+This project uses [Just](https://github.com/casey/just) for managing tasks, so you can run tests with:
+
+```sh
+just test
+```
+
+and generate coverage with:
+
+```sh
+just coverage
+```
+
+---
