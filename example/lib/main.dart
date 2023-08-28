@@ -72,8 +72,8 @@ class ResultExample {
   /// let final_awesome_result = good_result.unwrap();
   /// ```
   static Future<void> example2(List<String> args) async {
-    const goodResult = Result<int, int>.ok(10);
-    const badResult = Result<int, int>.err(10);
+    const goodResult = Ok<int, int>(10);
+    const badResult = Err<int, int>(10);
 
     // The `is_ok` and `is_err` methods do what they say.
     assert(goodResult.isOk && !goodResult.isErr, 'goodResult is not ok');
@@ -93,6 +93,42 @@ class ResultExample {
 
     // Consume the result and return the contents with `unwrap`.
     final finalAwesomeResult = goodResult3.unwrap();
+
+    print(finalAwesomeResult);
+  }
+
+  /// This example uses Future values.
+  ///
+  /// Thanks to the extension, all Result methods can be applied directly
+  /// to a Result future
+  static Future<void> example3(List<String> args) async {
+    final goodResult = Result.fromAsync<int, int>(() => Future.value(10));
+    final badResult = Result.fromAsync<int, int>(() => Future.error(10));
+
+    // The `is_ok` and `is_err` methods do what they say.
+    assert(
+      await goodResult.isOk && !await goodResult.isErr,
+      'goodResult is not ok',
+    );
+    assert(
+      await badResult.isErr && !await badResult.isOk,
+      'badResult is not err',
+    );
+
+    // `map` consumes the `Result` and produces another.
+    final goodResult2 = goodResult.map((i) => i + 1);
+    final badResult2 = badResult.map((i) => i - 1);
+
+    // Use `and_then` to continue the computation.
+    final goodResult3 = goodResult2.andThen((i) => Result.ok(i == 11));
+
+    // Use `or_else` to handle the error.
+    final badResult3 = badResult2.orElse((i) => Result<int, int>.ok(i + 20));
+
+    print(await badResult3);
+
+    // Consume the result and return the contents with `unwrap`.
+    final finalAwesomeResult = await goodResult3.unwrap();
 
     print(finalAwesomeResult);
   }

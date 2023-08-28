@@ -13,5 +13,7 @@ Future<void> main(List<String> args) async {
   await ResultExample.example1(args);
   print('Example 2:');
   await ResultExample.example2(args);
+  print('Example 3:');
+  await ResultExample.example3(args);
   exit(0);
 }

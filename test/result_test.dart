@@ -10,12 +10,16 @@ import 'package:test/test.dart';
 
 void main() {
   Result<int, String> resultOk = const Result<int, String>.ok(42);
+  Future<Result<int, String>> asyncResultOk = Future.value(resultOk);
   Result<int, String> resultErr =
       const Result<int, String>.err('error', StackTrace.empty);
+  Future<Result<int, String>> asyncResultErr = Future.value(resultErr);
 
   setUp(() {
     resultOk = const Result<int, String>.ok(42);
+    asyncResultOk = Future.value(resultOk);
     resultErr = const Result<int, String>.err('error');
+    asyncResultErr = Future.value(resultErr);
   });
 
   /// Tests of the Result creation methods (constructors and factories)
@@ -26,8 +30,26 @@ void main() {
       expect(result.isErr, isFalse);
     });
 
+    test('.success() returns Ok', () {
+      const result = Result<int, Exception>.success(42);
+      expect(result.isOk, isTrue);
+      expect(result.isErr, isFalse);
+    });
+
     test('.err() returns Err', () {
       final result = Result<int, Exception>.err(Exception('error'));
+      expect(result.isOk, isFalse);
+      expect(result.isErr, isTrue);
+    });
+
+    test('.error() returns Err', () {
+      final result = Result<int, Exception>.error(Exception('error'));
+      expect(result.isOk, isFalse);
+      expect(result.isErr, isTrue);
+    });
+
+    test('.failure() returns Err', () {
+      final result = Result<int, Exception>.failure(Exception('error'));
       expect(result.isOk, isFalse);
       expect(result.isErr, isTrue);
     });
@@ -124,32 +146,64 @@ void main() {
       expect(resultOk.isOk, isTrue);
     });
 
+    test('(async) .isOk returns true for Ok', () async {
+      expect(await asyncResultOk.isOk, isTrue);
+    });
+
     test('.isOk returns false for Err', () {
       expect(resultErr.isOk, isFalse);
+    });
+
+    test('(async) .isOk returns false for Err', () async {
+      expect(await asyncResultErr.isOk, isFalse);
     });
 
     test('.isErr returns true for Err', () {
       expect(resultErr.isErr, isTrue);
     });
 
+    test('(async) .isErr returns true for Err', () async {
+      expect(await asyncResultErr.isErr, isTrue);
+    });
+
     test('isErr returns false for Ok', () {
       expect(resultOk.isErr, isFalse);
+    });
+
+    test('(async) isErr returns false for Ok', () async {
+      expect(await asyncResultOk.isErr, isFalse);
     });
 
     test('.ok returns value for Ok', () {
       expect(resultOk.ok, equals(42));
     });
 
+    test('(async) .ok returns value for Ok', () async {
+      expect(await asyncResultOk.ok, equals(42));
+    });
+
     test('.ok returns null for Err', () {
       expect(resultErr.ok, isNull);
+    });
+
+    test('(async) .ok returns null for Err', () async {
+      expect(await asyncResultErr.ok, isNull);
     });
 
     test('.err returns error for Err', () {
       expect(resultErr.err, equals('error'));
     });
 
+    test('(async) .err returns error for Err', () async {
+      expect(await asyncResultErr.err, equals('error'));
+    });
+
     test('.err returns null for Ok', () {
       expect(resultOk.err, isNull);
+    });
+
+    test('(async) .err returns null for Ok', () async {
+      expect(await asyncResultOk.err, isNull);
     });
 
     test('.stackTrace returns captured stackTrace', () {
@@ -167,17 +221,53 @@ void main() {
       );
     });
 
+    test('(async) .stackTrace returns captured stackTrace', () async {
+      final trace = Trace.parse(
+        '#0      Foo._bar (file:///home/hpcl/code/stuff.dart:42:21)\n'
+        '#1      zip.<anonymous closure>.zap (dart:async/future.dart:0:2)\n'
+        '#2      zip.<anonymous closure>.zap (https://pub.dev/thing.dart:1:100)',
+      );
+
+      final result = Future.value(
+        Result<int, Exception>.err(
+          const ResultException('error'),
+          trace,
+        ),
+      );
+      expect(
+        await result.stackTrace,
+        equals(trace),
+      );
+    });
+
     test('.stackTrace returns null for Ok', () {
       expect(resultOk.stackTrace, isNull);
+    });
+
+    test('(async) .stackTrace returns null for Ok', () async {
+      expect(await asyncResultOk.stackTrace, isNull);
     });
 
     test('.expect() returns value for Ok', () {
       expect(resultOk.expect(), equals(42));
     });
 
+    test('(async) .expect() returns value for Ok', () async {
+      expect(await asyncResultOk.expect(), equals(42));
+    });
+
     test('.expect() throws error for Err', () {
       expect(
         resultErr.expect,
+        throwsA(
+          isA<ResultException>().having((e) => e.message, 'message', 'error'),
+        ),
+      );
+    });
+
+    test('(async) .expect() throws error for Err', () async {
+      expect(
+        asyncResultErr.expect,
         throwsA(
           isA<ResultException>().having((e) => e.message, 'message', 'error'),
         ),
@@ -197,13 +287,43 @@ void main() {
       );
     });
 
+    test('(async) .expect() throws error with custom message for Err', () {
+      expect(
+        () => asyncResultErr.expect('custom message'),
+        throwsA(
+          isA<ResultException>().having(
+            (e) => e.message,
+            'message',
+            'custom message: error',
+          ),
+        ),
+      );
+    });
+
     test('.expectErr() returns error for Err', () {
       expect(resultErr.expectErr(), equals('error'));
+    });
+
+    test('(async) .expectErr() returns error for Err', () async {
+      expect(await asyncResultErr.expectErr(), equals('error'));
     });
 
     test('.expectErr() throws error for Ok', () {
       expect(
         resultOk.expectErr,
+        throwsA(
+          isA<ResultException>().having(
+            (e) => e.message,
+            'message',
+            '42',
+          ),
+        ),
+      );
+    });
+
+    test('(async) .expectErr() throws error for Ok', () async {
+      expect(
+        asyncResultOk.expectErr,
         throwsA(
           isA<ResultException>().having(
             (e) => e.message,
@@ -227,8 +347,25 @@ void main() {
       );
     });
 
+    test('(async) .expectErr() throws error with custom message for Ok', () {
+      expect(
+        () => asyncResultOk.expectErr('custom message'),
+        throwsA(
+          isA<ResultException>().having(
+            (e) => e.message,
+            'message',
+            'custom message: 42',
+          ),
+        ),
+      );
+    });
+
     test('.unwrap() returns value for Ok', () {
       expect(resultOk.unwrap(), equals(42));
+    });
+
+    test('(async) .unwrap() returns value for Ok', () async {
+      expect(await asyncResultOk.unwrap(), equals(42));
     });
 
     test('.unwrap() throws error for Err', () {
@@ -240,8 +377,21 @@ void main() {
       );
     });
 
+    test('(async) .unwrap() throws error for Err', () async {
+      expect(
+        asyncResultErr.unwrap,
+        throwsA(
+          isA<ResultException>().having((e) => e.message, 'message', 'error'),
+        ),
+      );
+    });
+
     test('.unwrapErr() returns error for Err', () {
       expect(resultErr.unwrapErr(), equals('error'));
+    });
+
+    test('(async) .unwrapErr() returns error for Err', () async {
+      expect(await asyncResultErr.unwrapErr(), equals('error'));
     });
 
     test('.unwrapErr() throws error for Ok', () {
@@ -253,12 +403,29 @@ void main() {
       );
     });
 
+    test('(async) .unwrapErr() throws error for Ok', () async {
+      expect(
+        asyncResultOk.unwrapErr,
+        throwsA(
+          isA<ResultException>().having((e) => e.message, 'message', '42'),
+        ),
+      );
+    });
+
     test('.unwrapOr() returns value for Ok', () {
       expect(resultOk.unwrapOr(0), equals(42));
     });
 
+    test('(async) .unwrapOr() returns value for Ok', () async {
+      expect(await asyncResultOk.unwrapOr(0), equals(42));
+    });
+
     test('.unwrapOr() returns default value for Err', () {
       expect(resultErr.unwrapOr(0), equals(0));
+    });
+
+    test('(async) .unwrapOr() returns default value for Err', () async {
+      expect(await asyncResultErr.unwrapOr(0), equals(0));
     });
 
     test('.unwrapOrElse() returns value for Ok', () {
@@ -268,9 +435,23 @@ void main() {
       );
     });
 
+    test('(async) .unwrapOrElse() returns value for Ok', () async {
+      expect(
+        await asyncResultOk.unwrapOrElse((err) => 0),
+        equals(42),
+      );
+    });
+
     test('.unwrapOrElse() returns default value for Err', () {
       expect(
         resultErr.unwrapOrElse((err) => 0),
+        equals(0),
+      );
+    });
+
+    test('(async) .unwrapOrElse() returns default value for Err', () async {
+      expect(
+        await asyncResultErr.unwrapOrElse((err) => 0),
         equals(0),
       );
     });
@@ -282,9 +463,21 @@ void main() {
       expect(resultOk.contains(42), isTrue);
     });
 
+    test('(async) .contains() returns true if value is equal to given value',
+        () async {
+      expect(await asyncResultOk.contains(42), isTrue);
+    });
+
     test('.contains() returns false if value is not equal to given value', () {
       expect(resultOk.contains(0), isFalse);
     });
+
+    test(
+      '(async) .contains() returns false if value is not equal to given value',
+      () async {
+        expect(await asyncResultOk.contains(0), isFalse);
+      },
+    );
 
     test(
         '.containsLazy() returns true if value '
@@ -293,10 +486,26 @@ void main() {
     });
 
     test(
+      '(async) .containsLazy() returns true if value '
+      'is equal to given function result',
+      () async {
+        expect(await asyncResultOk.containsLazy(() => 42), isTrue);
+      },
+    );
+
+    test(
       '.containsLazy() returns false if value '
       'is equal to given function result',
       () {
         expect(resultOk.containsLazy(() => 0), isFalse);
+      },
+    );
+
+    test(
+      '(async) .containsLazy() returns false if value '
+      'is equal to given function result',
+      () async {
+        expect(await asyncResultOk.containsLazy(() => 0), isFalse);
       },
     );
 
@@ -309,10 +518,26 @@ void main() {
     );
 
     test(
+      '(async) .containsErr() returns true if '
+      'error is equal to given error',
+      () async {
+        expect(await asyncResultErr.containsErr('error'), isTrue);
+      },
+    );
+
+    test(
       '.containsErr() returns false if '
       'error is not equal to given error',
       () {
         expect(resultErr.containsErr('oops'), isFalse);
+      },
+    );
+
+    test(
+      '(async) .containsErr() returns false if '
+      'error is not equal to given error',
+      () async {
+        expect(await asyncResultErr.containsErr('oops'), isFalse);
       },
     );
 
@@ -322,6 +547,17 @@ void main() {
       () {
         expect(
           resultErr.containsErrLazy(() => 'error'),
+          isTrue,
+        );
+      },
+    );
+
+    test(
+      '(async) .containsErrLazy() returns true if '
+      'error is equal to given error',
+      () async {
+        expect(
+          await asyncResultErr.containsErrLazy(() => 'error'),
           isTrue,
         );
       },
@@ -338,9 +574,26 @@ void main() {
       },
     );
 
+    test(
+      '(async) .containsErrLazy() returns false if '
+      'error is not equal to given error',
+      () async {
+        expect(
+          await asyncResultErr.containsErrLazy(() => 'oops'),
+          isFalse,
+        );
+      },
+    );
+
     test('.inspect() calls given function if Ok', () {
       var called = false;
       resultOk.inspect((value) => called = true);
+      expect(called, isTrue);
+    });
+
+    test('(async) .inspect() calls given function if Ok', () async {
+      var called = false;
+      await asyncResultOk.inspect((value) => called = true);
       expect(called, isTrue);
     });
 
@@ -350,15 +603,33 @@ void main() {
       expect(called, isFalse);
     });
 
+    test('(async) .inspect() does not call given function if Err', () async {
+      var called = false;
+      await asyncResultErr.inspect((value) => called = true);
+      expect(called, isFalse);
+    });
+
     test('.inspectErr() does not call given function if Ok', () {
       var called = false;
       resultOk.inspectErr((err) => called = true);
       expect(called, isFalse);
     });
 
+    test('(async) .inspectErr() does not call given function if Ok', () async {
+      var called = false;
+      await asyncResultOk.inspectErr((err) => called = true);
+      expect(called, isFalse);
+    });
+
     test('.inspectErr() calls given function if Err', () {
       var called = false;
       resultErr.inspectErr((err) => called = true);
+      expect(called, isTrue);
+    });
+
+    test('(async) .inspectErr() calls given function if Err', () async {
+      var called = false;
+      await asyncResultErr.inspectErr((err) => called = true);
       expect(called, isTrue);
     });
 
@@ -537,10 +808,26 @@ void main() {
       );
     });
 
+    test('(async) .and() returns other if both are Ok', () async {
+      const ok = Result<int, String>.ok(0);
+      expect(
+        await asyncResultOk.and(ok),
+        equals(ok),
+      );
+    });
+
     test('.and() returns Err if self is Err and other is Ok', () {
       const ok = Result<int, String>.ok(0);
       expect(
         resultErr.and(ok),
+        equals(resultErr),
+      );
+    });
+
+    test('(async) .and() returns Err if self is Err and other is Ok', () async {
+      const ok = Result<int, String>.ok(0);
+      expect(
+        await asyncResultErr.and(ok),
         equals(resultErr),
       );
     });
@@ -553,10 +840,27 @@ void main() {
       );
     });
 
+    test('(async) .and() returns other err if self is Ok and other is Err',
+        () async {
+      const err = Result<int, String>.err('oops');
+      expect(
+        await asyncResultOk.and(err),
+        equals(err),
+      );
+    });
+
     test('.and() returns Err if both are Err', () {
       const err = Result<int, String>.err('oops');
       expect(
         resultErr.and(err),
+        equals(resultErr),
+      );
+    });
+
+    test('(async) .and() returns Err if both are Err', () async {
+      const err = Result<int, String>.err('oops');
+      expect(
+        await asyncResultErr.and(err),
         equals(resultErr),
       );
     });
@@ -596,10 +900,27 @@ void main() {
       );
     });
 
+    test('(async) .andThen() returns other if both are Ok', () async {
+      const ok = Result<int, String>.ok(0);
+      expect(
+        await asyncResultOk.andThen((_) => ok),
+        equals(ok),
+      );
+    });
+
     test('.andThen() returns Err if self is Err and other is Ok', () {
       const ok = Result<int, String>.ok(0);
       expect(
         resultErr.andThen((_) => ok),
+        equals(resultErr),
+      );
+    });
+
+    test('(async) .andThen() returns Err if self is Err and other is Ok',
+        () async {
+      const ok = Result<int, String>.ok(0);
+      expect(
+        await asyncResultErr.andThen((_) => ok),
         equals(resultErr),
       );
     });
@@ -612,10 +933,27 @@ void main() {
       );
     });
 
+    test('(async) .andThen() returns other err if self is Ok and other is Err',
+        () async {
+      const err = Result<int, String>.err('oops');
+      expect(
+        await asyncResultOk.andThen((_) => err),
+        equals(err),
+      );
+    });
+
     test('.andThen() returns Err if both are Err', () {
       const err = Result<int, String>.err('oops');
       expect(
         resultErr.andThen((_) => err),
+        equals(resultErr),
+      );
+    });
+
+    test('(async) .andThen() returns Err if both are Err', () async {
+      const err = Result<int, String>.err('oops');
+      expect(
+        await asyncResultErr.andThen((_) => err),
         equals(resultErr),
       );
     });
@@ -628,10 +966,26 @@ void main() {
       );
     });
 
+    test('(async) .or() returns other if both are Err', () async {
+      const err = Result<int, String>.err('oops');
+      expect(
+        await asyncResultErr.or(err),
+        equals(err),
+      );
+    });
+
     test('.or() returns Ok if self is Ok and other is Err', () {
       const err = Result<int, String>.err('oops');
       expect(
         resultOk.or(err),
+        equals(resultOk),
+      );
+    });
+
+    test('(async) .or() returns Ok if self is Ok and other is Err', () async {
+      const err = Result<int, String>.err('oops');
+      expect(
+        await asyncResultOk.or(err),
         equals(resultOk),
       );
     });
@@ -644,10 +998,27 @@ void main() {
       );
     });
 
+    test('(async) .or() returns other if self is Err and other is Ok',
+        () async {
+      const ok = Result<int, String>.ok(0);
+      expect(
+        await asyncResultErr.or(ok),
+        equals(ok),
+      );
+    });
+
     test('.or() returns Ok if both are Ok', () {
       const ok = Result<int, String>.ok(0);
       expect(
         resultOk.or(ok),
+        equals(resultOk),
+      );
+    });
+
+    test('(async) .or() returns Ok if both are Ok', () async {
+      const ok = Result<int, String>.ok(0);
+      expect(
+        await asyncResultOk.or(ok),
         equals(resultOk),
       );
     });
@@ -685,10 +1056,27 @@ void main() {
       );
     });
 
+    test('(async) .orElse() returns other if both are Err', () async {
+      const err = Result<int, String>.err('oops');
+      expect(
+        await asyncResultErr.orElse((_) => err),
+        equals(err),
+      );
+    });
+
     test('.orElse() returns Ok if self is Ok and other is Err', () {
       const err = Result<int, String>.err('oops');
       expect(
         resultOk.orElse((_) => err),
+        equals(resultOk),
+      );
+    });
+
+    test('(async) .orElse() returns Ok if self is Ok and other is Err',
+        () async {
+      const err = Result<int, String>.err('oops');
+      expect(
+        await asyncResultOk.orElse((_) => err),
         equals(resultOk),
       );
     });
@@ -701,10 +1089,27 @@ void main() {
       );
     });
 
+    test('(async) .orElse() returns other if self is Err and other is Ok',
+        () async {
+      const ok = Result<int, String>.ok(0);
+      expect(
+        await asyncResultErr.orElse((_) => ok),
+        equals(ok),
+      );
+    });
+
     test('.orElse() returns Ok if both are Ok', () {
       const ok = Result<int, String>.ok(0);
       expect(
         resultOk.orElse((_) => ok),
+        equals(resultOk),
+      );
+    });
+
+    test('(async) .orElse() returns Ok if both are Ok', () async {
+      const ok = Result<int, String>.ok(0);
+      expect(
+        await asyncResultOk.orElse((_) => ok),
         equals(resultOk),
       );
     });
@@ -737,9 +1142,46 @@ void main() {
       );
     });
 
+    test('(async) .orElse() chains stacktraces of errors', () async {
+      const trace1 =
+          '#0      Foo1._bar (file:///home/hpcl/code/stuff.dart:42:21)\n'
+          '#1      zip.<anonymous closure>.zap (dart:async/future.dart:0:2)\n'
+          '#2      zip.<anonymous closure>.zap (https://pub.dev/thing.dart:1:100)';
+
+      const trace2 =
+          '#0      Foo2._bar (file:///home/hpcl/code/stuff.dart:42:21)\n'
+          '#1      zip.<anonymous closure>.zap (dart:async/future.dart:0:2)\n'
+          '#2      zip.<anonymous closure>.zap (https://pub.dev/thing.dart:1:100)';
+
+      const chained = '$trace2\n$trace1';
+
+      final result1 = Future.value(
+        Result<int, Exception>.err(
+          const ResultException('error'),
+          StackTrace.fromString(trace1),
+        ),
+      );
+      final result2 = Result<int, Exception>.err(
+        const ResultException('error'),
+        StackTrace.fromString(trace2),
+      );
+
+      expect(
+        (await result1.orElse((_) => result2)).stackTrace.toString(),
+        equals(chained),
+      );
+    });
+
     test('.map() returns mapped Ok if Ok', () {
       expect(
         resultOk.map((value) => value.toString()),
+        equals(const Result<String, String>.ok('42')),
+      );
+    });
+
+    test('(async) .map() returns mapped Ok if Ok', () async {
+      expect(
+        await asyncResultOk.map((value) => value.toString()),
         equals(const Result<String, String>.ok('42')),
       );
     });
@@ -751,9 +1193,23 @@ void main() {
       );
     });
 
+    test('(async) .map() returns Err if Err', () async {
+      expect(
+        (await asyncResultErr.map((value) => value.toString())).err,
+        equals(const Result<String, String>.err('error').err),
+      );
+    });
+
     test('.mapAsync() returns mapped Ok if Ok', () async {
       expect(
         await resultOk.mapAsync((value) async => value.toString()),
+        equals(const Result<String, String>.ok('42')),
+      );
+    });
+
+    test('(async) .mapAsync() returns mapped Ok if Ok', () async {
+      expect(
+        await asyncResultOk.mapAsync((value) async => value.toString()),
         equals(const Result<String, String>.ok('42')),
       );
     });
@@ -765,6 +1221,13 @@ void main() {
       );
     });
 
+    test('(async) .mapAsync() returns Err if Err', () async {
+      expect(
+        (await asyncResultErr.mapAsync((value) async => value.toString())).err,
+        equals(const Result<String, String>.err('error').err),
+      );
+    });
+
     test('.mapErr() returns mapped Err if Err', () {
       expect(
         resultErr.mapErr((value) => value.length),
@@ -772,9 +1235,23 @@ void main() {
       );
     });
 
+    test('(async) .mapErr() returns mapped Err if Err', () async {
+      expect(
+        (await asyncResultErr.mapErr((value) => value.length)).err,
+        equals(const Result<int, int>.err(5).err),
+      );
+    });
+
     test('.mapErr() returns Ok if Ok', () {
       expect(
         resultOk.mapErr((value) => value.length),
+        equals(const Result<int, int>.ok(42)),
+      );
+    });
+
+    test('(async) .mapErr() returns Ok if Ok', () async {
+      expect(
+        await asyncResultOk.mapErr((value) => value.length),
         equals(const Result<int, int>.ok(42)),
       );
     });
@@ -786,9 +1263,23 @@ void main() {
       );
     });
 
+    test('(async) .mapErrAsync() returns mapped Err if Err', () async {
+      expect(
+        (await asyncResultErr.mapErrAsync((value) async => value.length)).err,
+        equals(const Result<int, int>.err(5).err),
+      );
+    });
+
     test('.mapErrAsync() returns Ok if Ok', () async {
       expect(
         await resultOk.mapErrAsync((value) async => value.length),
+        equals(const Result<int, int>.ok(42)),
+      );
+    });
+
+    test('(async) .mapErrAsync() returns Ok if Ok', () async {
+      expect(
+        await asyncResultOk.mapErrAsync((value) async => value.length),
         equals(const Result<int, int>.ok(42)),
       );
     });
@@ -800,9 +1291,23 @@ void main() {
       );
     });
 
+    test('(async) .mapOr() returns mapped value if Ok', () async {
+      expect(
+        await asyncResultOk.mapOr('oops', (value) async => value.toString()),
+        equals('42'),
+      );
+    });
+
     test('.mapOr() returns default value if Err', () {
       expect(
         resultErr.mapOr('oops', (value) => value.toString()),
+        equals('oops'),
+      );
+    });
+
+    test('(async) .mapOr() returns default value if Err', () async {
+      expect(
+        await asyncResultErr.mapOr('oops', (value) async => value.toString()),
         equals('oops'),
       );
     });
@@ -814,6 +1319,16 @@ void main() {
       );
     });
 
+    test('(async) .mapOrAsync() returns mapped value if Ok', () async {
+      expect(
+        await asyncResultOk.mapOrAsync(
+          'oops',
+          (value) async => value.toString(),
+        ),
+        equals('42'),
+      );
+    });
+
     test('.mapOrAsync() returns default value if Err', () async {
       expect(
         await resultErr.mapOrAsync('oops', (value) async => value.toString()),
@@ -821,9 +1336,29 @@ void main() {
       );
     });
 
+    test('(async) .mapOrAsync() returns default value if Err', () async {
+      expect(
+        await asyncResultErr.mapOrAsync(
+          'oops',
+          (value) async => value.toString(),
+        ),
+        equals('oops'),
+      );
+    });
+
     test('.mapOrElse() returns mapped value if Ok', () {
       expect(
         resultOk.mapOrElse(
+          (_) => 'oops',
+          (value) => value.toString(),
+        ),
+        equals('42'),
+      );
+    });
+
+    test('(async) .mapOrElse() returns mapped value if Ok', () async {
+      expect(
+        await asyncResultOk.mapOrElse(
           (_) => 'oops',
           (value) => value.toString(),
         ),
@@ -841,9 +1376,29 @@ void main() {
       );
     });
 
+    test('(async) .mapOrElse() returns default value if Err', () async {
+      expect(
+        await asyncResultErr.mapOrElse(
+          (_) => 'oops',
+          (value) => value.toString(),
+        ),
+        equals('oops'),
+      );
+    });
+
     test('.mapOrElseAsync() returns mapped value if Ok', () async {
       expect(
         await resultOk.mapOrElseAsync(
+          (_) async => 'oops',
+          (value) async => value.toString(),
+        ),
+        equals('42'),
+      );
+    });
+
+    test('(async) .mapOrElseAsync() returns mapped value if Ok', () async {
+      expect(
+        await asyncResultOk.mapOrElseAsync(
           (_) async => 'oops',
           (value) async => value.toString(),
         ),
@@ -861,9 +1416,29 @@ void main() {
       );
     });
 
+    test('(async) .mapOrElseAsync() returns default value if Err', () async {
+      expect(
+        await asyncResultErr.mapOrElseAsync(
+          (_) async => 'oops',
+          (value) async => value.toString(),
+        ),
+        equals('oops'),
+      );
+    });
+
     test('.fold() returns mapped value if Ok', () {
       expect(
         resultOk.fold(
+          (value) => value.toString(),
+          (error) => 'oops',
+        ),
+        equals('42'),
+      );
+    });
+
+    test('(async) .fold() returns mapped value if Ok', () async {
+      expect(
+        await asyncResultOk.fold(
           (value) => value.toString(),
           (error) => 'oops',
         ),
@@ -881,9 +1456,29 @@ void main() {
       );
     });
 
+    test('(async) .fold() returns mapped value if Err', () async {
+      expect(
+        await asyncResultErr.fold(
+          (value) => value.toString(),
+          (error) => 'oops',
+        ),
+        equals('oops'),
+      );
+    });
+
     test('.foldAsync() returns mapped value if Ok', () async {
       expect(
         await resultOk.foldAsync(
+          (value) async => value.toString(),
+          (error) async => 'oops',
+        ),
+        equals('42'),
+      );
+    });
+
+    test('(async) .foldAsync() returns mapped value if Ok', () async {
+      expect(
+        await asyncResultOk.foldAsync(
           (value) async => value.toString(),
           (error) async => 'oops',
         ),
@@ -901,12 +1496,34 @@ void main() {
       );
     });
 
+    test('(async) .foldAsync() returns mapped value if Err', () async {
+      expect(
+        await asyncResultErr.foldAsync(
+          (value) async => value.toString(),
+          (error) async => 'oops',
+        ),
+        equals('oops'),
+      );
+    });
+
     test('.flatten() returns Ok if Ok of Ok', () {
       const result = Result<Result<int, String>, String>.ok(
         Result<int, String>.ok(42),
       );
       expect(
         result.flatten<int>(),
+        equals(const Result<int, String>.ok(42)),
+      );
+    });
+
+    test('(async) .flatten() returns Ok if Ok of Ok', () async {
+      final result = Future.value(
+        const Result<Result<int, String>, String>.ok(
+          Result<int, String>.ok(42),
+        ),
+      );
+      expect(
+        await result.flatten<int>(),
         equals(const Result<int, String>.ok(42)),
       );
     });
@@ -921,6 +1538,18 @@ void main() {
       );
     });
 
+    test('(async) .flatten() returns Err if Ok of Err', () async {
+      final result = Future.value(
+        const Result<Result<int, String>, String>.ok(
+          Result<int, String>.err('error'),
+        ),
+      );
+      expect(
+        await result.flatten<int>(),
+        equals(const Result<int, String>.err('error')),
+      );
+    });
+
     test('.flatten() returns Err if Err', () {
       const result = Result<Result<int, String>, String>.err('error');
       expect(
@@ -929,8 +1558,26 @@ void main() {
       );
     });
 
+    test('(async) .flatten() returns Err if Err', () async {
+      final result = Future.value(
+        const Result<Result<int, String>, String>.err('error'),
+      );
+      expect(
+        await result.flatten<int>(),
+        equals(const Result<int, String>.err('error')),
+      );
+    });
+
     test('.flatten() throws if not result of result', () {
       const result = Result<int, String>.ok(42);
+      expect(
+        () => result.flatten<int>(),
+        throwsA(isA<ResultException>()),
+      );
+    });
+
+    test('(async) .flatten() throws if not result of result', () async {
+      final result = Future.value(const Result<int, String>.ok(42));
       expect(
         () => result.flatten<int>(),
         throwsA(isA<ResultException>()),

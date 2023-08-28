@@ -185,6 +185,15 @@ are equivalent too.
 
 ---
 
+All Result methods can be used with Future<Result> thanks to the extension methods:
+
+```dart
+final Future<Result<int, Exception>> result = Result.fromAsync(() => Future.value(42));
+final Future<Result<int, Exception>> mappedResult = result.map((value) => value * 2);
+```
+
+---
+
 This project uses [Just](https://github.com/casey/just) for managing tasks, so you can run tests with:
 
 ```sh
