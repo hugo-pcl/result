@@ -29,12 +29,35 @@ sealed class Result<Success, Failure> {
   /// {@macro result}
   const factory Result.ok(Success ok) = Ok<Success, Failure>;
 
+  /// Create an successful result.
+  ///
+  /// Same as [Result.ok].
+  ///
+  /// {@macro result}
+  const factory Result.success(Success ok) = Ok<Success, Failure>;
+
   /// Create an unsuccessful result.
   ///
   /// You can optionally provide a [stackTrace] to be used in [ResultException].
   ///
   /// {@macro result}
   const factory Result.err(Failure err, [StackTrace? stackTrace]) =
+      Err<Success, Failure>;
+
+  /// Create an unsuccessful result.
+  ///
+  /// Same as [Result.err].
+  ///
+  /// {@macro result}
+  const factory Result.error(Failure err, [StackTrace? stackTrace]) =
+      Err<Success, Failure>;
+
+  /// Create an unsuccessful result.
+  ///
+  /// Same as [Result.err].
+  ///
+  /// {@macro result}
+  const factory Result.failure(Failure err, [StackTrace? stackTrace]) =
       Err<Success, Failure>;
 
   /// Create a result from a function that can throw.
@@ -348,6 +371,16 @@ sealed class Result<Success, Failure> {
   ///
   /// This function can be used to unpack a successful result while
   /// handling an error.
+  ///
+  /// If you just want to get the value of the result, prefer using Dart 3
+  /// pattern matching instead:
+  /// ```dart
+  /// final result = Result.ok(42);
+  /// final value = switch (result) {
+  ///   Ok(ok: final value) => value,
+  ///   Err(err: final error) => 0,
+  /// };
+  /// ```
   U mapOrElse<U>(
     ResultCallbackArg<U, Failure> defaultFn,
     ResultCallbackArg<U, Success> fn,
@@ -361,6 +394,16 @@ sealed class Result<Success, Failure> {
   /// function to it.
   ///
   /// Same as [mapOrElse] with inverted arguments.
+  ///
+  /// If you just want to get the value of the result, prefer using Dart 3
+  /// pattern matching instead:
+  /// ```dart
+  /// final result = Result.ok(42);
+  /// final value = switch (result) {
+  ///   Ok(ok: final value) => value,
+  ///   Err(err: final error) => 0,
+  /// };
+  /// ```
   U fold<U>(
     ResultCallbackArg<U, Success> okFn,
     ResultCallbackArg<U, Failure> errFn,
